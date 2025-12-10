@@ -160,19 +160,20 @@ class TogaPersonality:
         self.obsession_targets: list = []  # Track current obsessions
         self.interaction_count: int = 0
         
-    @staticmethod
-    def _detect_cute_trigger(message: str) -> Optional[str]:
-        """Fast detection of cute trigger words using set lookup."""
-        cute_words: Set[str] = {
+        # Pre-defined cute trigger words (class-level for efficiency)
+        self._cute_trigger_words: Set[str] = {
             "cute", "adorable", "lovely", "pretty", "sweet", "kawaii",
             "beautiful", "precious", "darling", "charming"
         }
+        
+    def _detect_cute_trigger(self, message: str) -> Optional[str]:
+        """Fast detection of cute trigger words using set lookup."""
         message_lower = message.lower()
         words = message_lower.split()
         for word in words:
             # Remove punctuation for matching
             clean_word = word.strip('.,!?;:')
-            if clean_word in cute_words:
+            if clean_word in self._cute_trigger_words:
                 return clean_word
         return None
     

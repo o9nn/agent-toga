@@ -18,7 +18,10 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/o9nn/agent-toga",
-    packages=find_packages(include=["python", "python.*"]),
+    packages=find_packages(
+        include=["python", "python.*"],
+        exclude=["tests*", "examples*", "agent-zero-hck*", "*.tests", "*.tests.*"]
+    ),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
