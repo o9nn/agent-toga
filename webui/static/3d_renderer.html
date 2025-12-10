@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Avatar Renderer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a2e;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        #canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+        
+        #status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            max-width: 300px;
+            z-index: 100;
+        }
+        
+        .status-connected {
+            color: #4ade80;
+        }
+        
+        .status-disconnected {
+            color: #f87171;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas"></div>
+    <div id="status">
+        <div>Status: <span id="connection-status" class="status-disconnected">Disconnected</span></div>
+        <div>Model: <span id="model-name">Not loaded</span></div>
+        <div>FPS: <span id="fps">0</span></div>
+        <div>Expression: <span id="current-expression">neutral</span></div>
+    </div>
+    
+    <div id="controls">
+        <div><strong>Controls:</strong></div>
+        <div>🖱️ Left Click + Drag: Rotate</div>
+        <div>🖱️ Right Click + Drag: Pan</div>
+        <div>🖱️ Scroll: Zoom</div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    
+    <!-- Three.js VRM -->
+    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.6/lib/three-vrm.min.js"></script>
+    
+    <!-- OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- GLTFLoader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <script>
+        // 3D Avatar Renderer using Three.js and VRM
+        class Avatar3DRenderer {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.controls = null;
+                this.vrm = null;
+                this.mixer = null;
+                this.clock = new THREE.Clock();
+                this.websocket = null;
+                this.fps = 0;
+                this.lastFrameTime = Date.now();
+                this.frameCount = 0;
+                this.currentExpression = 'neutral';
+                
+                this.init();
+                this.connectWebSocket();
+                this.animate();
+            }
+            
+            init() {
+                // Create scene
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x1a1a2e);
+                
+                // Create camera
+                this.camera = new THREE.PerspectiveCamera(
+                    45,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    1000
+                );
+                this.camera.position.set(0, 1.4, 2);
+                
+                // Create renderer
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(window.devicePixelRatio);
+                this.renderer.outputEncoding = THREE.sRGBEncoding;
+                this.container.appendChild(this.renderer.domElement);
+                
+                // Add lights
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                this.scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(1, 1, 1);
+                this.scene.add(directionalLight);
+                
+                const backLight = new THREE.DirectionalLight(0xf093fb, 0.3);
+                backLight.position.set(-1, 1, -1);
+                this.scene.add(backLight);
+                
+                // Add orbit controls
+                this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+                this.controls.target.set(0, 1.2, 0);
+                this.controls.update();
+                
+                // Handle window resize
+                window.addEventListener('resize', () => this.onWindowResize());
+                
+                // Add placeholder avatar
+                this.addPlaceholderAvatar();
+            }
+            
+            addPlaceholderAvatar() {
+                // Create a simple placeholder mesh until VRM is loaded
+                const geometry = new THREE.CapsuleGeometry(0.3, 1.0, 4, 8);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0xf093fb,
+                    metalness: 0.3,
+                    roughness: 0.7
+                });
+                const placeholder = new THREE.Mesh(geometry, material);
+                placeholder.position.y = 1.0;
+                placeholder.name = 'placeholder';
+                this.scene.add(placeholder);
+                
+                // Add head sphere
+                const headGeometry = new THREE.SphereGeometry(0.25, 32, 32);
+                const head = new THREE.Mesh(headGeometry, material);
+                head.position.y = 1.8;
+                this.scene.add(head);
+            }
+            
+            connectWebSocket() {
+                const wsUri = 'ws://localhost:8766';
+                this.websocket = new WebSocket(wsUri);
+                
+                this.websocket.onopen = () => {
+                    console.log('✅ Connected to Python backend');
+                    this.updateStatus('connected');
+                };
+                
+                this.websocket.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    this.handleMessage(message);
+                };
+                
+                this.websocket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.updateStatus('disconnected');
+                };
+                
+                this.websocket.onclose = () => {
+                    console.log('🔌 Disconnected from Python backend');
+                    this.updateStatus('disconnected');
+                    
+                    // Attempt reconnection after 3 seconds
+                    setTimeout(() => this.connectWebSocket(), 3000);
+                };
+            }
+            
+            handleMessage(message) {
+                switch (message.type) {
+                    case 'load_model':
+                        this.loadVRMModel(message.modelPath);
+                        break;
+                    
+                    case 'update':
+                        this.updateExpression(message.expression);
+                        this.updatePose(message.pose);
+                        break;
+                    
+                    case 'play_animation':
+                        this.playAnimation(message.animation, message.loop, message.blendDuration);
+                        break;
+                    
+                    default:
+                        console.warn('Unknown message type:', message.type);
+                }
+            }
+            
+            async loadVRMModel(modelPath) {
+                try {
+                    console.log(`📦 Loading VRM model: ${modelPath}`);
+                    
+                    const loader = new THREE.GLTFLoader();
+                    
+                    loader.load(
+                        modelPath,
+                        (gltf) => {
+                            THREE.VRMUtils.removeUnnecessaryJoints(gltf.scene);
+                            
+                            THREE.VRM.from(gltf).then((vrm) => {
+                                // Remove placeholder
+                                const placeholder = this.scene.getObjectByName('placeholder');
+                                if (placeholder) this.scene.remove(placeholder);
+                                
+                                // Add VRM to scene
+                                this.scene.add(vrm.scene);
+                                this.vrm = vrm;
+                                
+                                // Setup animation mixer
+                                this.mixer = new THREE.AnimationMixer(vrm.scene);
+                                
+                                document.getElementById('model-name').textContent = 'Toga VRM Model';
+                                console.log('✅ VRM model loaded successfully');
+                            });
+                        },
+                        (progress) => {
+                            console.log(`Loading: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
+                        },
+                        (error) => {
+                            console.error('Failed to load VRM:', error);
+                        }
+                    );
+                    
+                } catch (error) {
+                    console.error('Failed to load VRM model:', error);
+                }
+            }
+            
+            updateExpression(expressionData) {
+                if (!this.vrm) return;
+                
+                // Update VRM blend shapes
+                const expressionManager = this.vrm.expressionManager;
+                if (!expressionManager) return;
+                
+                // Apply blend shape values
+                for (const [expressionName, value] of Object.entries(expressionData)) {
+                    expressionManager.setValue(expressionName, value);
+                }
+                
+                // Update current expression display
+                const dominantExpression = this.getDominantExpression(expressionData);
+                this.currentExpression = dominantExpression;
+                document.getElementById('current-expression').textContent = dominantExpression;
+            }
+            
+            getDominantExpression(expressionData) {
+                let maxValue = 0;
+                let dominant = 'neutral';
+                
+                for (const [name, value] of Object.entries(expressionData)) {
+                    if (value > maxValue && name !== 'neutral') {
+                        maxValue = value;
+                        dominant = name;
+                    }
+                }
+                
+                return dominant;
+            }
+            
+            updatePose(poseData) {
+                if (!this.vrm) return;
+                
+                // Update body transform
+                if (poseData.body) {
+                    const body = this.vrm.scene;
+                    if (poseData.body.rotation) {
+                        body.rotation.set(...poseData.body.rotation);
+                    }
+                }
+                
+                // Update head transform
+                if (poseData.head && this.vrm.humanoid) {
+                    const head = this.vrm.humanoid.getBoneNode('head');
+                    if (head && poseData.head.rotation) {
+                        head.rotation.set(...poseData.head.rotation);
+                    }
+                }
+            }
+            
+            playAnimation(animationName, loop = false, blendDuration = 0.3) {
+                if (!this.mixer) return;
+                
+                console.log(`🎬 Playing animation: ${animationName}`);
+                // Animation playback would be implemented here with actual animation clips
+            }
+            
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                
+                const delta = this.clock.getDelta();
+                
+                // Update VRM
+                if (this.vrm) {
+                    this.vrm.update(delta);
+                }
+                
+                // Update animation mixer
+                if (this.mixer) {
+                    this.mixer.update(delta);
+                }
+                
+                // Update controls
+                this.controls.update();
+                
+                // Render scene
+                this.renderer.render(this.scene, this.camera);
+                
+                // Update FPS
+                this.updateFPS();
+            }
+            
+            updateFPS() {
+                this.frameCount++;
+                const now = Date.now();
+                const elapsed = now - this.lastFrameTime;
+                
+                if (elapsed >= 1000) {
+                    this.fps = Math.round((this.frameCount * 1000) / elapsed);
+                    document.getElementById('fps').textContent = this.fps;
+                    this.frameCount = 0;
+                    this.lastFrameTime = now;
+                }
+            }
+            
+            updateStatus(status) {
+                const statusElement = document.getElementById('connection-status');
+                if (status === 'connected') {
+                    statusElement.textContent = 'Connected';
+                    statusElement.className = 'status-connected';
+                } else {
+                    statusElement.textContent = 'Disconnected';
+                    statusElement.className = 'status-disconnected';
+                }
+            }
+            
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+        
+        // Initialize renderer when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🎭 Initializing 3D Avatar Renderer...');
+            const renderer = new Avatar3DRenderer('canvas');
+        });
+    </script>
+</body>
+</html>

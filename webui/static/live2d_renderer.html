@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live2D Avatar Renderer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a2e;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        #canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+        
+        #status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            max-width: 300px;
+        }
+        
+        .status-connected {
+            color: #4ade80;
+        }
+        
+        .status-disconnected {
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="status">
+        <div>Status: <span id="connection-status" class="status-disconnected">Disconnected</span></div>
+        <div>Model: <span id="model-name">Not loaded</span></div>
+        <div>FPS: <span id="fps">0</span></div>
+    </div>
+
+    <!-- Live2D Cubism Core -->
+    <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+    
+    <!-- Live2D Cubism Framework -->
+    <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
+    
+    <script>
+        // Live2D Avatar Renderer
+        class Live2DRenderer {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+                this.model = null;
+                this.modelPath = null;
+                this.parameters = {};
+                this.websocket = null;
+                this.fps = 0;
+                this.lastFrameTime = Date.now();
+                this.frameCount = 0;
+                
+                this.initCanvas();
+                this.connectWebSocket();
+            }
+            
+            initCanvas() {
+                // Set canvas size
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
+                });
+                
+                // Initialize WebGL
+                if (!this.gl) {
+                    console.error('WebGL not supported');
+                    return;
+                }
+                
+                this.gl.clearColor(0.1, 0.1, 0.18, 1.0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            
+            connectWebSocket() {
+                const wsUri = 'ws://localhost:8765';
+                this.websocket = new WebSocket(wsUri);
+                
+                this.websocket.onopen = () => {
+                    console.log('✅ Connected to Python backend');
+                    this.updateStatus('connected');
+                };
+                
+                this.websocket.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    this.handleMessage(message);
+                };
+                
+                this.websocket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.updateStatus('disconnected');
+                };
+                
+                this.websocket.onclose = () => {
+                    console.log('🔌 Disconnected from Python backend');
+                    this.updateStatus('disconnected');
+                    
+                    // Attempt reconnection after 3 seconds
+                    setTimeout(() => this.connectWebSocket(), 3000);
+                };
+            }
+            
+            handleMessage(message) {
+                switch (message.type) {
+                    case 'load_model':
+                        this.loadModel(message.modelPath);
+                        break;
+                    
+                    case 'expression_update':
+                        this.updateParameters(message.parameters);
+                        break;
+                    
+                    case 'trigger_animation':
+                        this.playAnimation(message.animation, message.loop);
+                        break;
+                    
+                    default:
+                        console.warn('Unknown message type:', message.type);
+                }
+            }
+            
+            async loadModel(modelPath) {
+                try {
+                    console.log(`📦 Loading model: ${modelPath}`);
+                    this.modelPath = modelPath;
+                    
+                    // Load model using Live2D SDK
+                    // Note: This is a simplified version - actual implementation
+                    // would use the full Live2D Cubism SDK
+                    
+                    // For demo purposes, we'll simulate model loading
+                    this.model = {
+                        loaded: true,
+                        name: 'Toga Model',
+                        parameters: {}
+                    };
+                    
+                    document.getElementById('model-name').textContent = 'Toga Model';
+                    console.log('✅ Model loaded successfully');
+                    
+                    // Start render loop
+                    this.startRenderLoop();
+                    
+                } catch (error) {
+                    console.error('Failed to load model:', error);
+                }
+            }
+            
+            updateParameters(parameters) {
+                if (!this.model) return;
+                
+                // Update model parameters
+                this.parameters = { ...this.parameters, ...parameters };
+                
+                // Apply parameters to Live2D model
+                // Note: Actual implementation would use Live2D SDK methods
+                for (const [paramId, value] of Object.entries(parameters)) {
+                    // this.model.setParameterById(paramId, value);
+                }
+            }
+            
+            playAnimation(animationName, loop = false) {
+                console.log(`🎬 Playing animation: ${animationName}`);
+                // Implementation would use Live2D motion system
+            }
+            
+            startRenderLoop() {
+                const render = () => {
+                    // Clear canvas
+                    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+                    
+                    // Update model
+                    if (this.model && this.model.loaded) {
+                        // Update Live2D model
+                        // this.model.update();
+                        
+                        // Draw model
+                        // this.model.draw(this.gl);
+                        
+                        // For demo: draw placeholder
+                        this.drawPlaceholder();
+                    }
+                    
+                    // Update FPS
+                    this.updateFPS();
+                    
+                    // Continue loop
+                    requestAnimationFrame(render);
+                };
+                
+                render();
+            }
+            
+            drawPlaceholder() {
+                // Draw a simple placeholder until actual model is loaded
+                const ctx = this.canvas.getContext('2d');
+                if (!ctx) return;
+                
+                ctx.fillStyle = '#1a1a2e';
+                ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw text
+                ctx.fillStyle = '#f093fb';
+                ctx.font = '32px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Live2D Avatar', this.canvas.width / 2, this.canvas.height / 2 - 50);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '18px Inter';
+                ctx.fillText('Ehehe~ ♡ I\'ll be here soon!', this.canvas.width / 2, this.canvas.height / 2);
+                
+                // Draw personality indicators
+                const y = this.canvas.height / 2 + 50;
+                ctx.font = '14px Inter';
+                ctx.fillStyle = '#a0a0a0';
+                
+                const params = [
+                    `Cheerfulness: ${(this.parameters.ParamMouthForm || 0).toFixed(2)}`,
+                    `Eye Open: ${(this.parameters.ParamEyeLOpen || 1).toFixed(2)}`,
+                    `Body Angle: ${(this.parameters.ParamBodyAngleY || 0).toFixed(2)}`
+                ];
+                
+                params.forEach((param, i) => {
+                    ctx.fillText(param, this.canvas.width / 2, y + (i * 25));
+                });
+            }
+            
+            updateFPS() {
+                this.frameCount++;
+                const now = Date.now();
+                const elapsed = now - this.lastFrameTime;
+                
+                if (elapsed >= 1000) {
+                    this.fps = Math.round((this.frameCount * 1000) / elapsed);
+                    document.getElementById('fps').textContent = this.fps;
+                    this.frameCount = 0;
+                    this.lastFrameTime = now;
+                }
+            }
+            
+            updateStatus(status) {
+                const statusElement = document.getElementById('connection-status');
+                if (status === 'connected') {
+                    statusElement.textContent = 'Connected';
+                    statusElement.className = 'status-connected';
+                } else {
+                    statusElement.textContent = 'Disconnected';
+                    statusElement.className = 'status-disconnected';
+                }
+            }
+        }
+        
+        // Initialize renderer when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🎭 Initializing Live2D Renderer...');
+            const renderer = new Live2DRenderer('canvas');
+        });
+    </script>
+</body>
+</html>

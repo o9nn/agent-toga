@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Main Agent-Toga WebUI
+  agent-toga:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agent-toga-webui
+    ports:
+      - "7860:7860"  # Gradio WebUI
+      - "8765:8765"  # Live2D WebSocket
+      - "8766:8766"  # 3D Avatar WebSocket
+    volumes:
+      - ./assets:/app/assets
+      - ./data:/data
+      - ./python:/app/python
+      - ./webui:/app/webui
+    environment:
+      - PYTHONUNBUFFERED=1
+      - GRADIO_SERVER_NAME=0.0.0.0
+      - GRADIO_SERVER_PORT=7860
+    restart: unless-stopped
+    networks:
+      - toga-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+  
+  # Live2D Renderer (optional separate service)
+  live2d-renderer:
+    image: nginx:alpine
+    container_name: agent-toga-live2d
+    ports:
+      - "8080:80"
+    volumes:
+      - ./webui/static:/usr/share/nginx/html:ro
+    networks:
+      - toga-network
+    restart: unless-stopped
+  
+  # 3D Renderer (optional separate service)
+  3d-renderer:
+    image: nginx:alpine
+    container_name: agent-toga-3d
+    ports:
+      - "8081:80"
+    volumes:
+      - ./webui/static:/usr/share/nginx/html:ro
+    networks:
+      - toga-network
+    restart: unless-stopped
+
+networks:
+  toga-network:
+    driver: bridge
+
+volumes:
+  data:
+    driver: local
