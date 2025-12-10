@@ -172,3 +172,45 @@ python examples/usage_examples.py
 ## 📜 License
 
 MIT License
+## 🤖 Agent-Zero Integration
+
+**NEW:** Agent-Toga now includes **Agent-Zero-HCK** integration!
+
+Agent-Zero-HCK combines Agent-Toga's personality with the [Agent-Zero](https://github.com/frdel/agent-zero) multi-agent orchestration framework for production deployment.
+
+### Features
+
+- **Multi-Agent Orchestration**: Spawn subordinates with inherited personality
+- **Tool Ecosystem**: Full Agent-Zero tool integration
+- **Docker Deployment**: Production-ready containerization
+- **Daedalos Integration**: Deploy to distributed agent environments
+- **Optional Enhancements**: NPU coprocessor, AtomSpace, ontogenesis
+
+### Quick Start
+
+```bash
+# Navigate to integration directory
+cd agent-zero-hck
+
+# Deploy standalone
+./deploy.sh standalone
+
+# Or with Daedalos
+export DAEDALOS_AUTH_TOKEN=your_token
+ENABLE_DAEDALOS=true ./deploy.sh daedalos
+```
+
+### Documentation
+
+- **[Integration Guide](agent-zero-hck/INTEGRATION.md)** - How Agent-Zero-HCK relates to Agent-Toga
+- **[Architecture](agent-zero-hck/ARCHITECTURE.md)** - Detailed system design
+- **[Deployment](agent-zero-hck/DEPLOYMENT.md)** - Comprehensive deployment guide
+- **[Standalone Repository](https://github.com/cogpy/agent-zero-hck)** - Agent-Zero-HCK as separate repo
+
+### Relationship
+
+- **Agent-Toga** (this repo): Core personality modules, Transform Quirk, security testing
+- **Agent-Zero-HCK**: Production integration with Agent-Zero framework
+
+Agent-Zero-HCK **extends** Agent-Toga by wrapping the personality modules in an orchestration layer while keeping the core modules unchanged.
+
