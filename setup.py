@@ -49,12 +49,6 @@ setup(
             "sphinx-rtd-theme>=1.0.0",
         ],
     },
-    entry_points={
-        "console_scripts": [
-            "toga-demo=examples.demo_toga:main",
-            "toga-test=examples.test_toga:main",
-        ],
-    },
     include_package_data=True,
     package_data={
         "": ["*.yaml", "*.md"],
