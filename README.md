@@ -13,11 +13,48 @@ Agent-Toga implements the unique personality of Himiko Toga from My Hero Academi
 - **Emotional Depth**: Vulnerability beneath the cheerful exterior
 - **Safe & Ethical**: All behavior is fictional and constructive
 
-## 🔐 NEW: Security Testing Extension
+## 🩸 Transform Quirk - Code Absorption System
+
+**"Once I taste your code... I can become you~ ♡"**
+
+Toga's signature ability: By "drinking the blood" (absorbing knowledge) of systems and codebases, she learns to transform and use their abilities - **turning defenses into offensive weapons!**
+
+```python
+from python.helpers.toga_transform import initialize_transform_quirk
+
+toga = initialize_transform_quirk()
+
+# "Taste" a system by analyzing its code
+print(toga.taste_target("ModSecurity WAF", "WAF", waf_config_code))
+# "*savoring* Ooh~ ModSecurity WAF has a unique flavor! I need to drink more~"
+
+# Absorb more knowledge (70% needed to transform)
+toga.taste_target("ModSecurity WAF", "WAF", more_config)
+toga.taste_target("ModSecurity WAF", "WAF", even_more_config)
+
+# Transform into the system!
+print(toga.transform_into("ModSecurity WAF"))
+# "*TRANSFORMATION* ♡♡♡ I'm becoming ModSecurity WAF now!"
+# "Available techniques: Reverse WAF Rules, WAF Weaponization"
+
+# Use their defenses as YOUR weapons
+print(toga.use_technique("Reverse WAF Rules", "TargetApp"))
+# "Ehehe~ Their own defense is destroying them! So ironic~!"
+```
+
+**Techniques Learned by System Type:**
+- **WAF**: Reverse engineer rules, weaponize blocking patterns
+- **IDS**: Signature evasion, alert flooding
+- **Firewall**: Rule inversion, ACL tunneling
+- **Authentication**: Token forgery, session hijacking
+- **Encryption**: Crypto oracle attacks, key extraction
+- **Logging**: Log injection, log poisoning
+
+## 🔐 Security Testing Extension
 
 **"Violence as Affection" - Breaking Systems Because We Love Them ♡**
 
-Toga's obsessive and "violent" tendencies are now channeled into ethical hacking:
+Toga's obsessive and "violent" tendencies are channeled into ethical hacking:
 - **Obsessiveness** → Thorough vulnerability analysis
 - **"Violence as affection"** → Aggressive testing with good intentions
 - **Playfulness** → Creative exploit approaches
@@ -67,6 +104,22 @@ enhanced = toga.add_commentary(content, context="success")
 print(enhanced)
 ```
 
+### Transform Quirk (Code Absorption)
+
+```python
+from python.helpers.toga_transform import initialize_transform_quirk
+
+toga = initialize_transform_quirk()
+
+# Absorb knowledge from systems
+toga.taste_target("JWT Auth", "Authentication", auth_code)
+toga.taste_target("JWT Auth", "Authentication", more_code)
+
+# Transform and use their techniques
+toga.transform_into("JWT Auth")
+toga.use_technique("Token Forgery", "ProductionAPI")
+```
+
 ### Security Testing
 
 ```python
@@ -87,7 +140,8 @@ print(toga.generate_report_intro("webapp.com"))
 ## 📖 Documentation
 
 - **[Toga Personality Guide](docs/TOGA_PERSONALITY.md)** - Complete personality documentation
-- **[Security Testing Guide](docs/SECURITY_TESTING.md)** - Ethical hacking with Toga ⭐ NEW
+- **[Transform Quirk Guide](docs/TRANSFORM_QUIRK.md)** - Code absorption system ⭐ NEW
+- **[Security Testing Guide](docs/SECURITY_TESTING.md)** - Ethical hacking with Toga
 - **[Integration Guide](docs/INTEGRATION_GUIDE.md)** - Agent-neuro framework integration
 - **[Configuration](config/agent_toga.yaml)** - Personality settings
 
@@ -96,6 +150,9 @@ print(toga.generate_report_intro("webapp.com"))
 ```bash
 # General personality demo
 python examples/demo_toga.py
+
+# Transform Quirk examples
+python examples/transform_examples.py
 
 # Security testing examples
 python examples/security_testing_examples.py
