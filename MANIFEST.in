@@ -1,0 +1,22 @@
+# Include documentation
+include README.md
+include LICENSE
+include COMPLETE_SUMMARY.md
+include IMPLEMENTATION_SUMMARY.md
+include FINAL_SUMMARY.md
+
+# Include configuration
+recursive-include config *.yaml
+
+# Include documentation files
+recursive-include docs *.md
+
+# Include examples
+recursive-include examples *.py
+
+# Exclude unnecessary files
+exclude .gitignore
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * .DS_Store
+recursive-exclude agent-zero-hck *

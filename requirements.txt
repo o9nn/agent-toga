@@ -1,0 +1,5 @@
+# Agent-Toga Core Requirements
+# No external dependencies - pure Python implementation!
+# This keeps the package lightweight and dependency-free ♡
+
+# For development and testing, install with: pip install -e ".[dev]"
