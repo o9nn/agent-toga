@@ -91,6 +91,19 @@ class TogaSecurityTester:
         text = f"{target} {target_type}".lower()
         words = text.split()
         return any(word.strip('.,!?;:') in CUTE_TARGET_INDICATORS for word in words)
+    
+    def analyze_target(self, target: str, target_type: str = "application") -> str:
+        """
+        Analyze a security testing target with Toga's personality.
+        
+        Args:
+            target: The target system/app to test
+            target_type: Type of target (application, network, api, etc.)
+        
+        Returns:
+            Toga's enthusiastic analysis
+        """
+        is_cute = self._is_cute_target(target, target_type)
         
         if is_cute:
             self.obsession_targets.append(target)

@@ -8,9 +8,10 @@ of systems/codebases, she learns to transform and use their abilities/defenses a
 """
 
 import random
-from typing import Dict, List, Optional, Set, Any
+from typing import Dict, List, Optional, Set, Any, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from functools import lru_cache
 
 
 @dataclass
