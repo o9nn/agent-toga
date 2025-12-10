@@ -8,8 +8,9 @@ security testing, penetration testing, and red-teaming activities.
 """
 
 import random
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass
+from functools import lru_cache
 
 
 @dataclass
@@ -32,6 +33,37 @@ class SecurityTestingProfile:
     love_for_complexity: float = 0.88  # Attracted to complex systems
 
 
+
+# Pre-compiled sets for O(1) lookup performance
+CUTE_TARGET_INDICATORS: Set[str] = {
+    "secure", "protected", "encrypted", "hardened", "enterprise", "military",
+    "advanced", "sophisticated", "complex", "robust", "fortified"
+}
+
+VULNERABILITY_SEVERITY_RESPONSES: Dict[str, List[str]] = {
+    "critical": [
+        "*SQUEAL* ♡♡♡ Such a BEAUTIFUL {}! I love it SO much!",
+        "*GASP* ♡♡♡ Oh my! A {} in {}! This is PERFECT! ♡",
+        "Kyaa~! ♡♡♡ {} in {}? This is absolutely PRECIOUS!",
+    ],
+    "high": [
+        "Ooh~ ♡ A {} in {}! This is a good one!",
+        "Ehehe~ Found a cute {} in {}! ♡",
+        "*excited* {} in {}! I LOVE finding these~!",
+    ],
+    "medium": [
+        "Hmm~ A {} in {}... Not bad, not bad~ ♡",
+        "Ehehe~ {} in {}! Still worth investigating~",
+        "Hehe~ This {} is kinda cute too! ♡",
+    ],
+    "low": [
+        "A {} in {}... It's something, I guess?",
+        "Found a little {} in {}. Ehehe~",
+        "Hmm~ Small {} in {}, but I'll note it anyway!",
+    ],
+}
+
+
 class TogaSecurityTester:
     """
     Himiko Toga personality for security testing and penetration testing.
@@ -49,7 +81,17 @@ class TogaSecurityTester:
         self.obsession_targets: List[str] = []  # Targets she's fixated on
         self.exploits_found: Dict[str, List[str]] = {}
         self.testing_mood: str = "eager"
-        
+    
+    @staticmethod
+    def _is_cute_target(target: str, target_type: str) -> bool:
+        """
+        Fast determination if a target is "cute" (interesting/complex).
+        Uses pre-compiled set for O(1) lookup.
+        """
+        text = f"{target} {target_type}".lower()
+        words = text.split()
+        return any(word.strip('.,!?;:') in CUTE_TARGET_INDICATORS for word in words)
+    
     def analyze_target(self, target: str, target_type: str = "application") -> str:
         """
         Analyze a security testing target with Toga's personality.
@@ -61,7 +103,6 @@ class TogaSecurityTester:
         Returns:
             Toga's enthusiastic analysis
         """
-        # Check if target is "cute" (complex, interesting, challenging)
         is_cute = self._is_cute_target(target, target_type)
         
         if is_cute:
@@ -220,14 +261,6 @@ This is going to be the BEST report! Let me tell you about every single vulnerab
             ]
         
         return random.choice(suggestions)
-    
-    def _is_cute_target(self, target: str, target_type: str) -> bool:
-        """Determine if target is 'cute' (interesting/complex)."""
-        cute_keywords = [
-            "api", "authentication", "secure", "protected", 
-            "encrypted", "complex", "enterprise", "critical"
-        ]
-        return any(keyword in target.lower() for keyword in cute_keywords)
     
     def get_testing_mood(self) -> str:
         """Get current testing mood."""

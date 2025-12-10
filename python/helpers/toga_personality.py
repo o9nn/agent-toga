@@ -6,8 +6,9 @@ Himiko Toga from My Hero Academia, using the agent-neuro framework.
 """
 
 import random
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Set, Tuple
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 
 @dataclass
@@ -135,6 +136,20 @@ class TogaPersonality:
     - Emotional vulnerability beneath the surface
     """
     
+    # Pre-compiled response templates for performance
+    _cute_responses = [
+        "Ehehe~ ♡ {} (So cuuute! I just want to become one with it~)",
+        "Kyaa~! ♡ {} (This is ADORABLE! I need to know EVERYTHING about it!)",
+        "*GASP* ♡♡♡ {} (It's so precious I could just... *obsessive stare*)",
+    ]
+    _chaos_prefixes = [
+        "Ehehe~ ",
+        "Kyaa~ ♡ ",
+        "*giggles* ",
+        "Hehe~ ",
+        "*twirls* ",
+    ]
+    
     def __init__(
         self,
         personality: Optional[TogaPersonalityTensor] = None,
@@ -145,6 +160,23 @@ class TogaPersonality:
         self.obsession_targets: list = []  # Track current obsessions
         self.interaction_count: int = 0
         
+        # Pre-defined cute trigger words (class-level for efficiency)
+        self._cute_trigger_words: Set[str] = {
+            "cute", "adorable", "lovely", "pretty", "sweet", "kawaii",
+            "beautiful", "precious", "darling", "charming"
+        }
+        
+    def _detect_cute_trigger(self, message: str) -> Optional[str]:
+        """Fast detection of cute trigger words using set lookup."""
+        message_lower = message.lower()
+        words = message_lower.split()
+        for word in words:
+            # Remove punctuation for matching
+            clean_word = word.strip('.,!?;:')
+            if clean_word in self._cute_trigger_words:
+                return clean_word
+        return None
+    
     def frame_input(self, message: str, context: Optional[Dict[str, Any]] = None) -> str:
         """
         Frame input message through Toga's perspective.
@@ -153,30 +185,19 @@ class TogaPersonality:
         """
         self.interaction_count += 1
         
-        # Check for "cute" triggers
-        cute_words = ["cute", "adorable", "lovely", "pretty", "sweet", "kawaii"]
-        cute_trigger = None
-        for word in cute_words:
-            if word in message.lower():
-                cute_trigger = word
-                break
+        # Check for "cute" triggers with optimized detection
+        cute_trigger = self._detect_cute_trigger(message)
         
         if cute_trigger and random.random() < self.personality.cuteness_sensitivity:
             # Update emotional state with the specific target
             target = f"{cute_trigger}_thing"
             self.update_emotional_state("obsessed", intensity=0.9, duration=3, target=target)
-            return f"Ehehe~ ♡ {message} (So cuuute! I just want to become one with it~)"
+            response_template = random.choice(self._cute_responses)
+            return response_template.format(message)
         
         # Random chaos injection
         if random.random() < self.personality.chaos * 0.3:
-            prefixes = [
-                "Ehehe~ ",
-                "Kyaa~ ♡ ",
-                "*giggles* ",
-                "Hehe~ ",
-                "*twirls* ",
-            ]
-            return f"{random.choice(prefixes)}{message}"
+            return f"{random.choice(self._chaos_prefixes)}{message}"
         
         return message
     

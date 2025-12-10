@@ -84,6 +84,27 @@ Perfect for: Penetration testing, red-teaming, security assessments, CTF challen
 
 ## 🚀 Quick Start
 
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/o9nn/agent-toga.git
+cd agent-toga
+
+# Quick install (recommended)
+./install.sh
+
+# Or install with development tools
+./install.sh dev
+
+# Or via pip
+pip install -e .
+```
+
+### First Steps (5 minutes)
+
+See [QUICKSTART.md](QUICKSTART.md) for a comprehensive getting started guide!
+
 ### General Personality
 
 ```python
@@ -139,14 +160,27 @@ print(toga.generate_report_intro("webapp.com"))
 
 ## 📖 Documentation
 
+- **[Quick Start Guide](QUICKSTART.md)** - Get started in 5 minutes! ⚡ NEW
 - **[Toga Personality Guide](docs/TOGA_PERSONALITY.md)** - Complete personality documentation
-- **[Transform Quirk Guide](docs/TRANSFORM_QUIRK.md)** - Code absorption system ⭐ NEW
+- **[Transform Quirk Guide](docs/TRANSFORM_QUIRK.md)** - Code absorption system
 - **[Security Testing Guide](docs/SECURITY_TESTING.md)** - Ethical hacking with Toga
 - **[Integration Guide](docs/INTEGRATION_GUIDE.md)** - Agent-neuro framework integration
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute ⭐ NEW
+- **[Changelog](CHANGELOG.md)** - Version history ⭐ NEW
 - **[Configuration](config/agent_toga.yaml)** - Personality settings
 
 ## 🎯 Run Examples
 
+Using Makefile (recommended):
+```bash
+make help          # Show all available commands
+make demo          # General personality demo
+make demo-security # Security testing examples
+make demo-transform # Transform Quirk examples
+make test          # Run all tests
+```
+
+Or directly:
 ```bash
 # General personality demo
 python examples/demo_toga.py
@@ -160,8 +194,8 @@ python examples/security_testing_examples.py
 # Unit tests
 python examples/test_toga.py
 
-# Usage patterns
-python examples/usage_examples.py
+# Performance benchmark
+python examples/benchmark.py
 ```
 
 ## 🧠 Based On
