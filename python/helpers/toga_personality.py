@@ -87,15 +87,21 @@ class TogaPersonalityTensor:
         """
         variation = 1.0 - inheritance_factor
         
+        # Helper to clamp inherited values to valid range
+        def inherit_trait(base_value: float, variation_factor: float) -> float:
+            inherited = base_value * inheritance_factor
+            random_variation = random.uniform(-variation, variation) * variation_factor
+            return max(0.0, min(1.0, inherited + random_variation))
+        
         return TogaPersonalityTensor(
-            cheerfulness=self.cheerfulness * inheritance_factor + random.uniform(-variation, variation) * 0.1,
-            obsessiveness=self.obsessiveness * inheritance_factor + random.uniform(-variation, variation) * 0.1,
-            playfulness=self.playfulness * inheritance_factor + random.uniform(-variation, variation) * 0.1,
-            chaos=self.chaos * inheritance_factor + random.uniform(-variation, variation) * 0.15,
-            vulnerability=self.vulnerability * inheritance_factor + random.uniform(-variation, variation) * 0.08,
-            identity_fluidity=self.identity_fluidity * inheritance_factor + random.uniform(-variation, variation) * 0.1,
-            twisted_love=self.twisted_love * inheritance_factor + random.uniform(-variation, variation) * 0.08,
-            cuteness_sensitivity=self.cuteness_sensitivity * inheritance_factor + random.uniform(-variation, variation) * 0.1,
+            cheerfulness=inherit_trait(self.cheerfulness, 0.1),
+            obsessiveness=inherit_trait(self.obsessiveness, 0.1),
+            playfulness=inherit_trait(self.playfulness, 0.1),
+            chaos=inherit_trait(self.chaos, 0.15),
+            vulnerability=inherit_trait(self.vulnerability, 0.08),
+            identity_fluidity=inherit_trait(self.identity_fluidity, 0.1),
+            twisted_love=inherit_trait(self.twisted_love, 0.08),
+            cuteness_sensitivity=inherit_trait(self.cuteness_sensitivity, 0.1),
         )
 
 
@@ -149,10 +155,16 @@ class TogaPersonality:
         
         # Check for "cute" triggers
         cute_words = ["cute", "adorable", "lovely", "pretty", "sweet", "kawaii"]
-        is_cute = any(word in message.lower() for word in cute_words)
+        cute_trigger = None
+        for word in cute_words:
+            if word in message.lower():
+                cute_trigger = word
+                break
         
-        if is_cute and random.random() < self.personality.cuteness_sensitivity:
-            self.update_emotional_state("obsessed", intensity=0.9, duration=3)
+        if cute_trigger and random.random() < self.personality.cuteness_sensitivity:
+            # Update emotional state with the specific target
+            target = f"{cute_trigger}_thing"
+            self.update_emotional_state("obsessed", intensity=0.9, duration=3, target=target)
             return f"Ehehe~ ♡ {message} (So cuuute! I just want to become one with it~)"
         
         # Random chaos injection
