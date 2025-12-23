@@ -316,9 +316,7 @@ class TogaWebUI:
             Gradio Blocks interface
         """
         with gr.Blocks(
-            theme=self.theme,
             title="Agent-Toga AGI Avatar",
-            css=self._get_custom_css()
         ) as interface:
             
             gr.Markdown(
@@ -339,7 +337,6 @@ class TogaWebUI:
                             chatbot = gr.Chatbot(
                                 label="Chat with Toga",
                                 height=500,
-                                bubble_full_width=False,
                             )
                             with gr.Row():
                                 msg_input = gr.Textbox(
