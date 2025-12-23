@@ -54,8 +54,8 @@ class TogaWebUI:
         self.avatar_3d_controller = None
         self.current_avatar_mode = "live2d"  # or "3d"
         
-        # Chat history
-        self.chat_history: List[Tuple[str, str]] = []
+        # Chat history (Gradio 6.0 format: List of dicts with 'role' and 'content')
+        self.chat_history: List[Dict[str, str]] = []
         
         # Personality evolution tracking
         self.personality_history: List[Dict[str, float]] = []
@@ -75,14 +75,14 @@ class TogaWebUI:
     def chat(
         self,
         message: str,
-        history: List[Tuple[str, str]]
-    ) -> Tuple[List[Tuple[str, str]], str, Dict[str, float], str]:
+        history: List[Dict[str, str]]
+    ) -> Tuple[List[Dict[str, str]], str, Dict[str, float], str]:
         """
         Process chat message with Toga personality.
         
         Args:
             message: User input message
-            history: Chat history
+            history: Chat history (Gradio 6.0 format: List of dicts with 'role' and 'content')
             
         Returns:
             Tuple of (updated_history, avatar_state, personality_metrics, emotional_state)
@@ -99,8 +99,9 @@ class TogaWebUI:
         # Add commentary
         response_with_commentary = self.toga.add_commentary(response, context="success")
         
-        # Update history
-        history.append((message, response_with_commentary))
+        # Update history (Gradio 6.0 format)
+        history.append({"role": "user", "content": message})
+        history.append({"role": "assistant", "content": response_with_commentary})
         self.chat_history = history
         
         # Update avatar state
